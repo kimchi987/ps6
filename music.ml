@@ -327,7 +327,8 @@ let fast = [(D, 3); (Gb, 3); (A, 3); (G, 3);
 let melody = list_to_stream ((List.map quarter slow)
                              @ (List.map eighth fast));;
  
-let canon = pair (pair (pair bass (shift_start 2.0 melody)) (shift_start 4.0 melody)) (shift_start 6.0 melody);;
+let canon = pair (pair (pair bass (shift_start 2.0 melody)) 
+            (shift_start 4.0 melody)) (shift_start 6.0 melody);;
 
 output_midi "canon.mid" (stream_to_hex 176 canon);; 
 
