@@ -182,10 +182,10 @@ let rec list_to_stream (lst : obj list) : event NLS.stream =
   let rec list_to_stream_rec (nlst : obj list) : event NLS.stream =
     match nlst with
     | [] -> list_to_stream lst
-    | Note(p, dur, vol) :: tl -> 
-         lazy (NLS.Cons(Tone(0., p, vol), 
-         lazy (NLS.Cons(Stop(dur, p), list_to_stream_rec tl))))
-    | Rest(dur) :: tl -> shift_start dur (list_to_stream_rec tl)
+    | Note (p, dur, vol) :: tl -> 
+         lazy (NLS.Cons (Tone(0., p, vol), 
+         lazy (NLS.Cons (Stop(dur, p), list_to_stream_rec tl))))
+    | Rest (dur) :: tl -> shift_start dur (list_to_stream_rec tl)
   in list_to_stream_rec lst ;;
 
 (*......................................................................
@@ -195,11 +195,11 @@ for some examples.
 ......................................................................*)
 let rec pair (a : event NLS.stream) (b : event NLS.stream)
            : event NLS.stream =
-  let (NLS.Cons(hd, tl)) = Lazy.force a in 
-  let (NLS.Cons(hd', tl')) = Lazy.force b in 
+  let (NLS.Cons (hd, tl)) = Lazy.force a in 
+  let (NLS.Cons (hd', tl')) = Lazy.force b in 
   if time_of_event hd <= time_of_event hd' then
     lazy (NLS.Cons (hd, pair (shift_start (-. (time_of_event hd)) b) tl)) else
-    lazy (NLS.Cons (hd', pair (shift_start (-. (time_of_event hd')) a) tl'));;
+    lazy (NLS.Cons (hd', pair (shift_start (-. (time_of_event hd')) a) tl')) ;;
 
 
 (*......................................................................
@@ -221,7 +221,7 @@ let transpose (str : event NLS.stream) (half_steps : int)
       match x with
       | Tone (ton , p, vol) -> Tone(ton, transpose_pitch p half_steps, vol)
       | Stop (ton, p) -> Stop (ton, transpose_pitch p half_steps))
-    str;;
+    str ;;
 
 (*----------------------------------------------------------------------
                          Testing music streams
@@ -325,12 +325,12 @@ let fast = [(D, 3); (Gb, 3); (A, 3); (G, 3);
             (G, 3); (B, 3); (A, 3); (G, 3)] ;; 
 
 let melody = list_to_stream ((List.map quarter slow)
-                             @ (List.map eighth fast));;
+                             @ (List.map eighth fast)) ;;
  
 let canon = pair (pair (pair bass (shift_start 2.0 melody)) 
-            (shift_start 4.0 melody)) (shift_start 6.0 melody);;
+            (shift_start 4.0 melody)) (shift_start 6.0 melody) ;;
 
-output_midi "canon.mid" (stream_to_hex 176 canon);; 
+output_midi "canon.mid" (stream_to_hex 176 canon) ;; 
 
 
 (*......................................................................

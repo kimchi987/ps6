@@ -186,7 +186,7 @@ forth. There is an example of bfenumerate being applied below.
 let rec bfenumerate (tslist : 'a tree list) : 'a stream =
   match tslist with 
   | [] -> raise Finite_tree
-  | hd::tl -> lazy (Cons (node hd, bfenumerate (tl @ children hd)));;
+  | hd::tl -> lazy (Cons (node hd, bfenumerate (tl @ children hd))) ;;
 
 
 (* Now use your implementation to generate some interesting infinite
@@ -197,7 +197,7 @@ each branch will yield helpful intuition for the next problems. *)
 onest -- An infinite binary tree all of whose nodes hold the integer 1.
 ......................................................................*)
 let rec onest : int tree =
-  lazy (Node (1, [onest]));;
+  lazy (Node (1, [onest])) ;;
 
 (*......................................................................
 levels n -- Returns an infinite binary tree where the value of each
@@ -217,7 +217,7 @@ argument n. For example:
 
 
 let rec levels (n : int) : int tree =
-  lazy (Node (n, [(levels(n+1)); (levels(n+1))]));;
+  lazy (Node (n, [(levels(n+1)); (levels(n+1))])) ;;
 
 (*......................................................................
 Define an infinite binary tree tree_nats where the value of each node in
@@ -251,7 +251,7 @@ print_depth 6 0 tree_nats ;;
 let tree_nats : int tree = 
   let rec helper (n:int):int tree = 
   lazy (Node (n, [(helper(2*n+1)); (helper(2*n+2))])) in 
-  helper 0;;
+  helper 0 ;;
 
 (*======================================================================
 Time estimate
