@@ -44,14 +44,16 @@ the input stream. For example:
 - : float list = [0.5; 1.5; 2.5; 3.5; 4.5]
 ......................................................................*)
   
-let average (s : float stream) : float stream =
-  failwith "average not implemented" ;;
+let rec average (s : float stream) : float stream =
+  lazy (Cons(((head s) +. (head(tail s))) /. 2., average (tail s))) ;;
 
 (* Now instead of using the stream of approximations in pi_sums, you
 can instead use the stream of averaged pi_sums, which converges much
 more quickly. Test that it requires far fewer steps to get within,
 say, 0.001 of pi. You'll want to record your results below for Problem
 7. *)
+
+let average_pi = average (pi_sums) ;;
    
 (*......................................................................
 Problem 6: Implementing Aitken's method
@@ -62,8 +64,14 @@ writeup. Write a function to apply this accelerator to a stream, and
 use it to generate approximations of pi.
 ......................................................................*)
    
-let aitken (s: float stream) : float stream =
-  failwith "aitken not implemented" ;;
+let rec aitken (s: float stream) : float stream =
+  let sn = head s in 
+  let sn_1 = head (tail s) in 
+  let sn_2 = head (tail (tail s)) in 
+  let s'n = sn -. ((sn -. sn_1) ** 2.) /. (sn -. 2. *. sn_1 +. sn_2) in 
+  lazy (Cons (s'n, aitken (tail s))) ;;
+
+let aitken_pi = aitken (pi_sums) ;;
 
 (*......................................................................
 Problem 7: Testing the acceleration
@@ -74,13 +82,13 @@ get within different epsilons of pi.
     ---------------------------------------------------------
     epsilon  |  pi_sums  |  averaged method  |  aitken method 
     ---------------------------------------------------------
-    0.1      |           |                   |
+    0.1      |   19      |         2         |        0
     ---------------------------------------------------------
-    0.01     |           |                   |
+    0.01     |   199     |         9         |        2
     ---------------------------------------------------------
-    0.001    |           |                   |
+    0.001    |   1999    |         30        |        6
     ---------------------------------------------------------
-    0.0001   |           |                   |
+    0.0001   |   19999   |         99        |        15
     ---------------------------------------------------------
 ......................................................................*)
 
@@ -111,59 +119,21 @@ Problem 8: Implementing infinite trees
 node t -- Returns the element of type 'a stored at the root node of
 tree t of type 'a tree.
 ......................................................................*)
+
 let node (t : 'a tree) : 'a =
-  failwith "node not implemented" ;;
+  let Node (h, _) = Lazy.force t in h ;;
 
 (*......................................................................
 children t -- Returns the list of children of the root node of tree t.
 ......................................................................*)
-let children (t : 'a tree) : 'a tree list =
-  failwith "children not implemented" ;;
+
+let rec children (t : 'a tree) : 'a tree list =
+  let Node (_, tl) = Lazy.force t in tl ;;
 
 (*......................................................................
 print_depth n indent t -- Prints a representation of the first n
 levels of the tree t indented indent spaces. You can see some examples
 of the intended output of print_depth below.
-......................................................................*)
-let rec print_depth (n : int) (indent : int) (t : int tree) : unit =
-  failwith "print_depth not implemented" ;;
-
-(*......................................................................
-tmap f t -- Returns a tree obtained by mapping the function f over
-each node in t.
-......................................................................*)
-let rec tmap (f : 'a -> 'b) (t : 'a tree) : 'b tree =
-  failwith "tmap not implemented" ;;
-
-(*......................................................................
-tmap2 f t1 t2 -- Returns the tree obtained by applying the function f
-to corresponding nodes in t1 and t2, which must have the same
-"shape". If they don't an Invalid_argument exception is raised.
-......................................................................*)
-let rec tmap2 (f : 'a -> 'b -> 'c)
-              (t1 : 'a tree) (t2 : 'b tree)
-            : 'c tree =
-  failwith "tmap2 not implemented" ;;
-
-(*......................................................................
-bfenumerate tslist -- Returns a LazyStreams.stream of the nodes in the
-list of trees tslist enumerated in breadth first order, that is, the
-root nodes of each of the trees, then the level one nodes, and so
-forth. There is an example of bfenumerate being applied below.
-......................................................................
- *)
-let rec bfenumerate (tslist : 'a tree list) : 'a stream =
-  failwith "bfenumerate not implemented" ;;
-
-(* Now use your implementation to generate some interesting infinite
-trees.  Hint: Drawing a tree considering how the values change along
-each branch will yield helpful intuition for the next problems. *)
-
-(*......................................................................
-onest -- An infinite binary tree all of whose nodes hold the integer 1.
-......................................................................*)
-let rec onest : int tree =
-  lazy (failwith "onest not implemented") ;;
 
 (*......................................................................
 levels n -- Returns an infinite binary tree where the value of each
@@ -180,15 +150,93 @@ argument n. For example:
   2...
 - : unit = ()
 ......................................................................*)
+......................................................................*)
+ let rec print_depth (n : int) (indent : int) (t : int tree) : unit = 
+    Printf.printf "%s" (String.make (indent) ' ');
+    Printf.printf "%d...\n" (node t);
+    if n > 0 then 
+      List.iter (print_depth (n - 1) (indent + 1)) (children t) else
+      () ;;
+(*......................................................................
+tmap f t -- Returns a tree obtained by mapping the function f over
+each node in t.
+......................................................................*)
+  let rec tmap (f : 'a -> 'b) (t : 'a tree) : 'b tree =
+    let Node (hd, tl) = Lazy.force t in 
+      lazy (Node (f hd, List.map (tmap f) tl)) ;;
+(*......................................................................
+tmap2 f t1 t2 -- Returns the tree obtained by applying the function f
+to corresponding nodes in t1 and t2, which must have the same
+"shape". If they don't an Invalid_argument exception is raised.
+......................................................................*)
+let rec tmap2 (f : 'a -> 'b -> 'c)
+              (t1 : 'a tree) (t2 : 'b tree)
+            : 'c tree =
+  let Node (hd, tl) = Lazy.force t1 in 
+  let Node (hd2, tl2) = Lazy.force t2 in 
+  lazy (Node (f (hd) (hd2), List.map2 (tmap2 f) (tl) (tl2))) ;;
+(*......................................................................
+bfenumerate tslist -- Returns a LazyStreams.stream of the nodes in the
+list of trees tslist enumerated in breadth first order, that is, the
+root nodes of each of the trees, then the level one nodes, and so
+forth. There is an example of bfenumerate being applied below.
+......................................................................
+ *)
+
+let rec bfenumerate (tslist : 'a tree list) : 'a stream =
+  match tslist with 
+  | [] -> raise Finite_tree
+  | hd::tl -> lazy (Cons (node hd, bfenumerate (tl @ children hd)));;
+
+
+(* Now use your implementation to generate some interesting infinite
+trees.  Hint: Drawing a tree considering how the values change along
+each branch will yield helpful intuition for the next problems. *)
+
+(*......................................................................
+onest -- An infinite binary tree all of whose nodes hold the integer 1.
+......................................................................*)
+let rec onest : int tree =
+  lazy (Node (1, [onest]));;
+
+(*......................................................................
+levels n -- Returns an infinite binary tree where the value of each
+node in the tree is its level or depth in the tree, starting with the
+argument n. For example:
+
+# print_depth 4 0 (levels 1) ;;
+0...
+ 1...
+  2...
+  2...
+ 1...
+  2...
+  2...
+- : unit = ()
+......................................................................*)
+
+
 let rec levels (n : int) : int tree =
-  failwith "levels not implemented" ;;
+  lazy (Node (n, [(levels(n+1)); (levels(n+1))]));;
 
 (*......................................................................
 Define an infinite binary tree tree_nats where the value of each node in
 the tree is consecutively numbered in breadth-first order starting
 with 0. For example:
+# print_depth 2 0 (levels 0) ;;
+0...
+ 1...
+  2...
+  2...
+ 1...
+  2...
+  2...
+- : unit = ()
 
 # print_depth 2 0 tree_nats ;;
+print_depth 3 0 tree_nats ;;
+print_depth 4 0 tree_nats ;;
+print_depth 6 0 tree_nats ;;
 0...
  1...
   3...
@@ -200,9 +248,11 @@ with 0. For example:
 # first 10 (bfenumerate [tree_nats]) ;;
 - : int list = [0; 1; 2; 3; 4; 5; 6; 7; 8; 9]
 ......................................................................*)
-let rec tree_nats : int tree =
-  lazy (failwith "tree_nats not implemented") ;;
-                                                 
+let tree_nats : int tree = 
+  let rec helper (n:int):int tree = 
+  lazy (Node (n, [(helper(2*n+1)); (helper(2*n+2))])) in 
+  helper 0;;
+
 (*======================================================================
 Time estimate
 
@@ -212,4 +262,4 @@ on average, not in total).  We care about your responses and will use
 them to help guide us in creating future assignments.
 ......................................................................*)
 
-let minutes_spent_on_part () : int = failwith "not provided" ;;
+let minutes_spent_on_part () : int = 960 ;;

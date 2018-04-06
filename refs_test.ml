@@ -20,4 +20,16 @@ let _ = reflist := list2 ;;
 (* Some example tests. You'll want more. *)
 let _ =
   assert(not(has_cycle list1a)) ;
-  assert(has_cycle(!reflist)) ;;
+  assert(has_cycle(!reflist)) ;
+  assert(has_cycle list1a = false);
+  assert(has_cycle list1b = false);
+  assert(has_cycle list2 = true);
+
+  assert(flatten list2; has_cycle list2 = false);
+  assert(mlength list1a = 1);
+  assert(mlength list1b = 2);
+  assert(mlength list1 = 3);
+  assert(mlength list1b = 2);
+  assert(mlength list2 = 2);
+
+
