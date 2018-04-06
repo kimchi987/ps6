@@ -13,16 +13,6 @@ Problem 1: Write a function has_cycle that returns whether a mutable
 list has a cycle. You may want a recursive helper function. Don't
 worry about space usage.
 ......................................................................*)
-                                      
-(*let has_cycle (lst : 'a mlist) : bool =
-  let rec helper (mList: 'a mlist) (cList : 'a mlist) : bool = 
-  	match mList with
-  	| Nil -> false
-  	| Cons (_, tl) -> match !tl with
-  					  | Nil -> false
-  					  | Cons (_, tl') -> if !tl == !tl' then true else
-  					  						helper !tl !tl' in
-  helper lst lst;;*)
 
   let has_cycle (lst : 'a mlist) : bool =
   let rec helper (mList: 'a mlist) (cList : 'a mlist) : bool = 
@@ -35,12 +25,12 @@ worry about space usage.
   					  						helper !tl !tl3 in
   helper lst lst ;;
 
-
 (*......................................................................
 Problem 2: Write a function flatten that flattens a list (removes its
 cycles if it has any) destructively. Again, you may want a recursive
 helper function and you shouldn't worry about space.
 ......................................................................*)
+
 let flatten (lst : 'a mlist) : unit =
   let rec helper (mList : 'a mlist) (cList : 'a mlist) : unit = 
   	match mList, cList with
@@ -51,7 +41,6 @@ let flatten (lst : 'a mlist) : unit =
   					  | Cons (_, tl3) -> if !tl == !tl3 then (tl := Nil) else
   					  	helper !tl !tl3 in 
   helper lst lst ;;
-
 
 (*......................................................................
 Problem 3: Write mlength, which nondestructively finds the number of

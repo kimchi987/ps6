@@ -127,7 +127,7 @@ let node (t : 'a tree) : 'a =
 children t -- Returns the list of children of the root node of tree t.
 ......................................................................*)
 
-let rec children (t : 'a tree) : 'a tree list =
+let children (t : 'a tree) : 'a tree list =
   let Node (_, tl) = Lazy.force t in tl ;;
 
 (*......................................................................
